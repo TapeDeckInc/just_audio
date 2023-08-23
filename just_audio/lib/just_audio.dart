@@ -2075,7 +2075,7 @@ class _HttpRangeResponse {
 }
 
 /// Specifies a source of audio to be played. Audio sources are composable
-/// using the subclasses of this class. The same [AudioSource] instance should
+/// using the subclasses of th`is class. The same [AudioSource] instance should
 /// not be used simultaneously by more than one [AudioPlayer].
 abstract class AudioSource {
   final String _id;
@@ -2095,16 +2095,19 @@ abstract class AudioSource {
   /// If headers are set, just_audio will create a cleartext local HTTP proxy on
   /// your device to forward HTTP requests with headers included.
   static UriAudioSource uri(Uri uri,
-      {Map<String, String>? headers, dynamic tag}) {
+      {Map<String, String>? headers, dynamic tag, String? customId}) {
     bool hasExtension(Uri uri, String extension) =>
         uri.path.toLowerCase().endsWith('.$extension') ||
         uri.fragment.toLowerCase().endsWith('.$extension');
     if (hasExtension(uri, 'mpd')) {
-      return DashAudioSource(uri, headers: headers, tag: tag);
+      return DashAudioSource(uri,
+          headers: headers, tag: tag, customId: customId);
     } else if (hasExtension(uri, 'm3u8')) {
-      return HlsAudioSource(uri, headers: headers, tag: tag);
+      return HlsAudioSource(uri,
+          headers: headers, tag: tag, customId: customId);
     } else {
-      return ProgressiveAudioSource(uri, headers: headers, tag: tag);
+      return ProgressiveAudioSource(uri,
+          headers: headers, tag: tag, customId: customId);
     }
   }
 
@@ -2171,9 +2174,10 @@ abstract class AudioSource {
 /// An [AudioSource] that can appear in a sequence.
 abstract class IndexedAudioSource extends AudioSource {
   final dynamic tag;
+  final String? id;
   Duration? duration;
 
-  IndexedAudioSource({this.tag, this.duration});
+  IndexedAudioSource({this.tag, this.duration, this.id});
 
   @override
   void _shuffle({int? initialIndex}) {}
@@ -2191,8 +2195,9 @@ abstract class UriAudioSource extends IndexedAudioSource {
   final Map<String, String>? headers;
   Uri? _overrideUri;
 
-  UriAudioSource(this.uri, {this.headers, dynamic tag, Duration? duration})
-      : super(tag: tag, duration: duration);
+  UriAudioSource(this.uri,
+      {this.headers, dynamic tag, Duration? duration, String? id})
+      : super(tag: tag, duration: duration, id: id);
 
   /// If [uri] points to an asset, this gives us [_overrideUri] which is the URI
   /// of the copied asset on the filesystem, otherwise it gives us the original
@@ -2274,9 +2279,13 @@ abstract class UriAudioSource extends IndexedAudioSource {
 /// If headers are set, just_audio will create a cleartext local HTTP proxy on
 /// your device to forward HTTP requests with headers included.
 class ProgressiveAudioSource extends UriAudioSource {
-  ProgressiveAudioSource(Uri uri,
-      {Map<String, String>? headers, dynamic tag, Duration? duration})
-      : super(uri, headers: headers, tag: tag, duration: duration);
+  ProgressiveAudioSource(
+    Uri uri, {
+    Map<String, String>? headers,
+    dynamic tag,
+    Duration? duration,
+    String? customId,
+  }) : super(uri, headers: headers, tag: tag, duration: duration, id: customId);
 
   @override
   AudioSourceMessage _toMessage() => ProgressiveAudioSourceMessage(
@@ -2298,9 +2307,13 @@ class ProgressiveAudioSource extends UriAudioSource {
 /// If headers are set, just_audio will create a cleartext local HTTP proxy on
 /// your device to forward HTTP requests with headers included.
 class DashAudioSource extends UriAudioSource {
-  DashAudioSource(Uri uri,
-      {Map<String, String>? headers, dynamic tag, Duration? duration})
-      : super(uri, headers: headers, tag: tag, duration: duration);
+  DashAudioSource(
+    Uri uri, {
+    Map<String, String>? headers,
+    dynamic tag,
+    Duration? duration,
+    String? customId,
+  }) : super(uri, headers: headers, tag: tag, duration: duration, id: customId);
 
   @override
   AudioSourceMessage _toMessage() => DashAudioSourceMessage(
@@ -2321,9 +2334,13 @@ class DashAudioSource extends UriAudioSource {
 /// If headers are set, just_audio will create a cleartext local HTTP proxy on
 /// your device to forward HTTP requests with headers included.
 class HlsAudioSource extends UriAudioSource {
-  HlsAudioSource(Uri uri,
-      {Map<String, String>? headers, dynamic tag, Duration? duration})
-      : super(uri, headers: headers, tag: tag, duration: duration);
+  HlsAudioSource(
+    Uri uri, {
+    Map<String, String>? headers,
+    dynamic tag,
+    Duration? duration,
+    String? customId,
+  }) : super(uri, headers: headers, tag: tag, duration: duration, id: customId);
 
   @override
   AudioSourceMessage _toMessage() => HlsAudioSourceMessage(
